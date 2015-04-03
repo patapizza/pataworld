@@ -8,11 +8,12 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_FIND_NO_DUPS
 setopt HIST_IGNORE_SPACE
 
-set -o vi
-
 bindkey "^R" history-incremental-search-backward
 bindkey "^[[A" up-line-or-history
 bindkey "^[[B" down-line-or-history
+
+bindkey -v
+export KEYTIMEOUT=1
 
 export TERM=xterm-256color
 
