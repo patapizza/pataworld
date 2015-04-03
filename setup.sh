@@ -5,8 +5,8 @@ echo "Copying ~/.vimrc, ~/.zshrc and ~/.vim..."
 [[ -f ~/.zshrc ]] && mv ~/.zshrc ~/.zshrc.backup
 [[ -d ~/.vim ]] && mv ~/.vim ~/.vim.backup
 
-mv .vimrc ~/.vimrc
-mv .zshrc ~/.zshrc
+cp .vimrc ~/.vimrc
+cp .zshrc ~/.zshrc
 
 # vim
 ## pathogen
