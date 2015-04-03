@@ -20,6 +20,10 @@ cd ~/.vim/bundle
 echo "[vim] Installing solarized..."
 git clone https://github.com/altercation/vim-colors-solarized.git
 
+## ctrlp
+echo "[vim] Installing ctrlp..."
+git clone https://github.com/kien/ctrlp.vim.git
+
 ## clojure
 echo "[vim] Installing clojure plugins..."
 git clone https://github.com/tpope/vim-fireplace.git
