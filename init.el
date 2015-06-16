@@ -15,15 +15,15 @@
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 (ensure-packages '(auto-complete
-                   cider
-                   clojure-mode
-                   company
-                   evil
-                   evil-paredit
-                   ido-ubiquitous
-                   paredit
-                   projectile
-                   smartparens))
+                    cider
+                    clojure-mode
+                    company
+                    evil
+                    evil-paredit
+                    ido-ubiquitous
+                    paredit
+                    projectile
+                    smartparens))
 
 (require 'auto-complete)
 (require 'cider)
@@ -36,15 +36,31 @@
 (defun bind-evil (keyseq symbol &optional state-map)
   (define-key (or state-map evil-normal-state-map) (kbd keyseq) symbol))
 
-(defun change-parenthesis (parenthesis)
-  (let ((wrap-fn (cond ((string= "(" parenthesis) 'paredit-wrap-round)
-                       ((string= "[" parenthesis) 'paredit-wrap-square)
-                       ((string= "{" parenthesis) 'paredit-wrap-curly))))
-    (when wrap-fn
-      (funcall wrap-fn)
-      (forward-char)
-      (paredit-splice-sexp)
-      (backward-char))))
+(defun change-parenthesis-at-open (wrap-fn)
+  (funcall wrap-fn)
+  (forward-char)
+  (paredit-splice-sexp))
+
+(defun change-parenthesis-at-close (wrap-fn)
+  (paredit-backward-up)
+  (change-parenthesis-at-open wrap-fn))
+
+(defun open-parenthesisp (c)
+  (or (string= "(" c) (string= "[" c) (string= "{" c)))
+
+(defun close-parenthesisp (c)
+  (or (string= ")" c) (string= "]" c) (string= "}" c)))
+
+(defun change-parenthesis ()
+  (interactive)
+  (save-excursion
+    (let ((c (char-to-string (following-char)))
+          (wrap-fn (cond ((= 40 last-command-event) 'paredit-wrap-round) ; "("
+                         ((= 91 last-command-event) 'paredit-wrap-square) ; "["
+                         ((= 123 last-command-event) 'paredit-wrap-curly)))) ; "{"
+      (when wrap-fn
+        (cond ((open-parenthesisp c) (change-parenthesis-at-open wrap-fn))
+              ((close-parenthesisp c) (change-parenthesis-at-close wrap-fn)))))))
 
 (defun lisp-hook ()
   (local-set-key (kbd "RET") 'newline-and-indent)
@@ -56,15 +72,8 @@
   (bind-evil ",r" 'paredit-splice-sexp-killing-backward)
   (bind-evil "M-[" 'paredit-wrap-square)
   (bind-evil "M-{" 'paredit-wrap-curly)
-  (bind-evil ",c(" (lambda ()
-		     (interactive)
-		     (change-parenthesis "(")))
-  (bind-evil ",c[" (lambda ()
-		     (interactive)
-		     (change-parenthesis "[")))
-  (bind-evil ",c{" (lambda ()
-		     (interactive)
-		     (change-parenthesis "{"))))
+  (dolist (parenthesis '("(" "[" "{"))
+    (bind-evil (concat ",c" parenthesis) 'change-parenthesis)))
 
 (defun clojure-hook ()
   (bind-evil "M-." 'cider-find-var)
@@ -93,25 +102,25 @@
 (bind-evil "\\b" 'projectile-switch-to-buffer)
 (bind-evil "\\p" 'projectile-find-file)
 (bind-evil "C-k" (lambda ()
-		   (interactive)
-		   (evil-scroll-up nil)))
+                   (interactive)
+                   (evil-scroll-up nil)))
 (bind-evil "C-j" (lambda ()
-		   (interactive)
-		   (evil-scroll-down nil)))
+                   (interactive)
+                   (evil-scroll-down nil)))
 (bind-evil "C-z" 'suspend-frame)
 (bind-evil "-" 'evil-window-next)
 (bind-evil "gc" 'comment-or-uncomment-region evil-visual-state-map)
 (bind-evil "gcc" (lambda ()
-		   (interactive)
-		   (comment-or-uncomment-region (line-beginning-position)
-						(line-end-position))))
+                   (interactive)
+                   (comment-or-uncomment-region (line-beginning-position)
+                                                (line-end-position))))
 
 
 (global-set-key (kbd "RET") 'newline-and-indent)
 
 ;; Smartparens
 (sp-with-modes sp--lisp-modes
-  (sp-local-pair "(" nil :bind "M-("))
+               (sp-local-pair "(" nil :bind "M-("))
 
 ;; Autocomplete
 (global-auto-complete-mode t)
