@@ -15,16 +15,21 @@
 (add-to-list 'package-archives
 	     '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
-(ensure-packages '(auto-complete
+(ensure-packages '(ack
+		   ac-js2
+		   auto-complete
 		   cider
 		   clojure-mode
 		   company
 		   evil
 		   evil-paredit
 		   ido-ubiquitous
+		   js3-mode
 		   paredit
 		   projectile
-		   smartparens))
+		   skewer-mode
+		   smartparens
+		   smooth-scrolling))
 
 (require 'auto-complete)
 (require 'cider)
@@ -80,6 +85,11 @@
     (fnk 'defun)
     (go-try 'defun)))
 
+(defun js-hook ()
+  (local-set-key (kbd "RET") 'newline-and-indent)
+  (js2-highlight-unused-variables-mode 1)
+  (bind-evil "M-." 'ac-js2-jump-to-definition))
+
 (defun lisp-hook ()
   (local-set-key (kbd "RET") 'newline-and-indent)
   (paredit-mode 1)
@@ -97,6 +107,9 @@
 (add-hook 'clojure-mode-hook 'lisp-hook)
 (add-hook 'clojure-mode-hook 'clojure-hook)
 (add-hook 'emacs-lisp-mode-hook 'lisp-hook)
+(add-hook 'js3-mode-hook 'js2-minor-mode)
+(add-hook 'js3-mode-hook 'ac-js2-mode)
+(add-hook 'js3-mode-hook 'js-hook)
 (add-hook 'prog-mode-hook 'whitespace-mode)
 
 ;; Autocomplete
@@ -139,6 +152,11 @@
 
 (ido-ubiquitous-mode 1)
 
+;; Js2, js3
+(setq
+ js2-highlight-level 3
+ js3-indent-dots t)
+
 ;; Smartparens
 (sp-with-modes sp--lisp-modes
   (sp-local-pair "(" nil :bind "M-("))
@@ -152,6 +170,12 @@
 (load-theme 'solarized t)
 (toggle-theme 'light)
 
+;; Smooth scrolling
+(setq
+ scroll-margin 5
+ scroll-conservatively 9999
+ scroll-step 1)
+
 ;; Whitespace
 (setq
  whitespace-action '(auto-cleanup)
@@ -162,7 +186,9 @@
 ;; Global config
 (setq
  ack-default-directory-function '(lambda (&rest args) (projectile-project-root))
+ make-backup-files nil
  column-number-mode t
+ delete-old-versions t
  indent-tabs-mode nil
  line-number-mode t
  tab-width 2)
