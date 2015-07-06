@@ -11,25 +11,27 @@
 
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
-	     '("marmalade" . "http://marmalade-repo.org/packages/"))
+             '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 (ensure-packages '(ack
-		   ac-js2
-		   auto-complete
-		   cider
-		   clojure-mode
-		   company
-		   evil
-		   evil-paredit
-		   ido-ubiquitous
-		   js3-mode
-		   paredit
-		   projectile
-		   skewer-mode
-		   smartparens
-		   smooth-scrolling))
+                   ac-js2
+                   auto-complete
+                   cider
+                   clojure-mode
+                   company
+                   evil
+                   evil-paredit
+                   ido-ubiquitous
+                   js3-mode
+                   paredit
+                   projectile
+                   skewer-mode
+                   smartparens
+                   smooth-scrolling
+                   tern
+                   tern-auto-complete))
 
 (require 'auto-complete)
 (require 'cider)
@@ -38,6 +40,7 @@
 (require 'ido-ubiquitous)
 (require 'projectile)
 (require 'smartparens-config)
+(require 'tern-auto-complete)
 (require 'whitespace)
 
 ;; Custom functions
@@ -48,20 +51,20 @@
   (interactive)
   (save-excursion
     (let* ((c (char-to-string (following-char)))
-	   (open-paren? (or (string= "(" c) (string= "[" c) (string= "{" c)))
-	   (close-paren? (or (string= ")" c) (string= "]" c) (string= "}" c)))
-	   (change-paren-left (lambda (f)
-				(funcall f)
-				(forward-char)
-				(paredit-splice-sexp)))
-	   (wrap-fn (pcase last-command-event
-		      (40 'paredit-wrap-round) ; "("
-		      (91 'paredit-wrap-square) ; "["
-		      (123 'paredit-wrap-curly)))) ; "{"
+           (open-paren? (or (string= "(" c) (string= "[" c) (string= "{" c)))
+           (close-paren? (or (string= ")" c) (string= "]" c) (string= "}" c)))
+           (change-paren-left (lambda (f)
+                                (funcall f)
+                                (forward-char)
+                                (paredit-splice-sexp)))
+           (wrap-fn (pcase last-command-event
+                      (40 'paredit-wrap-round) ; "("
+                      (91 'paredit-wrap-square) ; "["
+                      (123 'paredit-wrap-curly)))) ; "{"
       (when wrap-fn
-	(cond (open-paren? (funcall change-paren-left wrap-fn))
-	      (close-paren? (paredit-backward-up)
-			    (funcall change-paren-left wrap-fn)))))))
+        (cond (open-paren? (funcall change-paren-left wrap-fn))
+              (close-paren? (paredit-backward-up)
+                            (funcall change-paren-left wrap-fn)))))))
 
 (defvar loaded-theme)
 (defun toggle-theme (theme)
@@ -85,10 +88,18 @@
     (fnk 'defun)
     (go-try 'defun)))
 
+;; (defun js-hook ()
+;;   (local-set-key (kbd "RET") 'newline-and-indent)
+;;   (js2-highlight-unused-variables-mode 1)
+;;   (bind-evil "M-." 'ac-js2-jump-to-definition))
+
 (defun js-hook ()
   (local-set-key (kbd "RET") 'newline-and-indent)
   (js2-highlight-unused-variables-mode 1)
-  (bind-evil "M-." 'ac-js2-jump-to-definition))
+  (tern-mode t)
+  (tern-ac-setup)
+  (bind-evil "M-." 'tern-find-definition)
+  (bind-evil "M-," 'tern-pop-find-definition))
 
 (defun lisp-hook ()
   (local-set-key (kbd "RET") 'newline-and-indent)
@@ -116,46 +127,50 @@
 (global-auto-complete-mode t)
 
 ;; Cider
-(setq cider-auto-select-error-buffer t
-      cider-popup-stacktraces t
-      cider-repl-history-file "/tmp/cider-repl-history"
-      cider-repl-history-size 1000
-      cider-repl-popup-stacktraces t
-      cider-repl-pop-to-buffer-on-connect nil
-      cider-repl-wrap-history t)
+(setq-default
+ cider-auto-select-error-buffer t
+ cider-popup-stacktraces t
+ cider-repl-history-file "/tmp/cider-repl-history"
+ cider-repl-history-size 1000
+ cider-repl-popup-stacktraces t
+ cider-repl-pop-to-buffer-on-connect nil
+ cider-repl-wrap-history t)
 
 ;; Evil
 (evil-mode t)
 (bind-evil "\\b" 'projectile-switch-to-buffer)
 (bind-evil "\\p" 'projectile-find-file)
 (bind-evil "\\s" (lambda ()
-		   (interactive)
-		   (toggle-theme (if (eq 'dark loaded-theme) 'light 'dark))))
+                   (interactive)
+                   (toggle-theme (if (eq 'dark loaded-theme) 'light 'dark))))
 (bind-evil "-" 'evil-window-next)
 (bind-evil "C-j" (lambda ()
-		   (interactive)
-		   (evil-scroll-down nil)))
+                   (interactive)
+                   (evil-scroll-down nil)))
 (bind-evil "C-k" (lambda ()
-		   (interactive)
-		   (evil-scroll-up nil)))
+                   (interactive)
+                   (evil-scroll-up nil)))
 (bind-evil "C-z" 'suspend-frame)
 (bind-evil "gc" 'comment-or-uncomment-region evil-visual-state-map)
 (bind-evil "gcc" (lambda ()
-		   (interactive)
-		   (comment-or-uncomment-region (line-beginning-position)
-						(line-end-position))))
+                   (interactive)
+                   (comment-or-uncomment-region (line-beginning-position)
+                                                (line-end-position))))
 
 ;; Ido
-(setq
+(setq-default
  ido-enable-flex-matching t
  ido-everywhere t)
 
 (ido-ubiquitous-mode 1)
 
 ;; Js2, js3
-(setq
+(setq-default
  js2-highlight-level 3
  js3-indent-dots t)
+
+;; Projectile
+(projectile-global-mode t)
 
 ;; Smartparens
 (sp-with-modes sp--lisp-modes
@@ -171,20 +186,22 @@
 (toggle-theme 'light)
 
 ;; Smooth scrolling
-(setq
+(setq-default
  scroll-margin 5
  scroll-conservatively 9999
  scroll-step 1)
 
 ;; Whitespace
-(setq
+(setq-default
  whitespace-action '(auto-cleanup)
  whitespace-style '(empty face tabs indentation lines-tail space-after-tab
-		    space-before-tab trailing)
+                    space-before-tab trailing)
  whitespace-line-column 81)
 
+(global-whitespace-mode t)
+
 ;; Global config
-(setq
+(setq-default
  ack-default-directory-function '(lambda (&rest args) (projectile-project-root))
  make-backup-files nil
  column-number-mode t
