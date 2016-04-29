@@ -11,7 +11,7 @@
 
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "http://melpa.org/packages/") t)
 (add-to-list 'package-archives
              '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
@@ -75,7 +75,6 @@
 
 ;; Hooks
 (defun cider-hook ()
-  (cider-turn-on-eldoc-mode)
   (company-mode 1))
 
 (defun clojure-hook ()
@@ -86,12 +85,9 @@
   (define-clojure-indent
     (fact 'defun)
     (fnk 'defun)
-    (go-try 'defun)))
-
-;; (defun js-hook ()
-;;   (local-set-key (kbd "RET") 'newline-and-indent)
-;;   (js2-highlight-unused-variables-mode 1)
-;;   (bind-evil "M-." 'ac-js2-jump-to-definition))
+    (some-> 1)
+    (some->> 1)
+    (s/defrecord 'defun)))
 
 (defun js-hook ()
   (local-set-key (kbd "RET") 'newline-and-indent)
