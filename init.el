@@ -33,6 +33,9 @@
                    tern
                    tern-auto-complete))
 
+;; Prevent evil-jump-forward take over TAB
+(setq evil-want-C-i-jump nil)
+
 (require 'auto-complete)
 (require 'cider)
 (require 'evil)
@@ -66,12 +69,12 @@
               (close-paren? (paredit-backward-up)
                             (funcall change-paren-left wrap-fn)))))))
 
-(defvar loaded-theme)
-(defun toggle-theme (theme)
-  (set-frame-parameter nil 'background-mode theme)
-  (set-terminal-parameter nil 'background-mode theme)
+(defvar current-color-mode)
+(defun toggle-color-mode (mode)
+  (set-frame-parameter nil 'background-mode mode)
+  (set-terminal-parameter nil 'background-mode mode)
   (enable-theme 'solarized)
-  (setq loaded-theme theme))
+  (setq current-color-mode mode))
 
 ;; Hooks
 (defun cider-hook ()
@@ -138,7 +141,7 @@
 (bind-evil "\\p" 'projectile-find-file)
 (bind-evil "\\s" (lambda ()
                    (interactive)
-                   (toggle-theme (if (eq 'dark loaded-theme) 'light 'dark))))
+                   (toggle-color-mode (if (eq 'dark current-color-mode) 'light 'dark))))
 (bind-evil "-" 'evil-window-next)
 (bind-evil "C-j" (lambda ()
                    (interactive)
@@ -173,13 +176,21 @@
   (sp-local-pair "(" nil :bind "M-("))
 
 (custom-set-variables
- '(sp-base-key-bindings 'paredit)
- '(sp-autoskip-closing-pair 'always))
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (tern-auto-complete smooth-scrolling smartparens projectile js3-mode ido-ubiquitous evil-paredit company cider ack ac-js2)))
+ '(sp-autoskip-closing-pair (quote always))
+ '(sp-base-key-bindings (quote paredit)))
 
 ;; Solarized
+;; https://github.com/sellout/emacs-color-theme-solarized
 (add-to-list 'custom-theme-load-path "~/.emacs.d/emacs-color-theme-solarized")
 (load-theme 'solarized t)
-(toggle-theme 'light)
+(toggle-color-mode 'light)
 
 ;; Smooth scrolling
 (setq-default
@@ -209,3 +220,9 @@
 (global-linum-mode t)
 (global-set-key (kbd "RET") 'newline-and-indent)
 (menu-bar-mode -1)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
